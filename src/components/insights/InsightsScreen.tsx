@@ -36,6 +36,7 @@ export const InsightsScreen: React.FC = () => {
     openAddExpense, 
     language, 
     numberFormat,
+    isPrivacyMode,
     t 
   } = useApp();
 
@@ -238,19 +239,19 @@ export const InsightsScreen: React.FC = () => {
                 <span>{language === 'ar' ? 'صافي الحركة المالية للشهر' : 'Monthly Cashflow'}</span>
                 <span className={(insights.netSavings ?? 0) >= 0 ? 'text-emerald-600 dark:text-emerald-400 font-extrabold' : 'text-rose-600 dark:text-rose-400 font-extrabold'}>
                   {(insights.netSavings ?? 0) >= 0 
-                    ? (language === 'ar' ? `+ فائض: ${formatCurrency(insights.netSavings || 0, settings.currency, language, false, numberFormat)}` : `+ Surplus: ${formatCurrency(insights.netSavings || 0, settings.currency, language, false, numberFormat)}`)
-                    : (language === 'ar' ? `− عجز: ${formatCurrency(Math.abs(insights.netSavings || 0), settings.currency, language, false, numberFormat)}` : `− Deficit: ${formatCurrency(Math.abs(insights.netSavings || 0), settings.currency, language, false, numberFormat)}`)
+                    ? (language === 'ar' ? `+ فائض: ${formatCurrency(insights.netSavings || 0, settings.currency, language, isPrivacyMode, numberFormat)}` : `+ Surplus: ${formatCurrency(insights.netSavings || 0, settings.currency, language, isPrivacyMode, numberFormat)}`)
+                    : (language === 'ar' ? `− عجز: ${formatCurrency(Math.abs(insights.netSavings || 0), settings.currency, language, isPrivacyMode, numberFormat)}` : `− Deficit: ${formatCurrency(Math.abs(insights.netSavings || 0), settings.currency, language, isPrivacyMode, numberFormat)}`)
                   }
                 </span>
               </div>
               <div className="grid grid-cols-2 gap-2 text-xs pt-1 border-t border-emerald-500/10">
                 <div className="flex items-baseline justify-between">
                   <span className="text-slate-500 dark:text-slate-400">{language === 'ar' ? 'إجمالي الدخل:' : 'Total income:'}</span>
-                  <span className="font-bold text-emerald-600 dark:text-emerald-400">+{formatCurrency(insights.totalIncome || 0, settings.currency, language, false, numberFormat)}</span>
+                  <span className="font-bold text-emerald-600 dark:text-emerald-400">+{formatCurrency(insights.totalIncome || 0, settings.currency, language, isPrivacyMode, numberFormat)}</span>
                 </div>
                 <div className="flex items-baseline justify-between">
                   <span className="text-slate-500 dark:text-slate-400">{language === 'ar' ? 'إجمالي المصاريف:' : 'Total spent:'}</span>
-                  <span className="font-bold text-slate-900 dark:text-white">−{formatCurrency(insights.totalSpent, settings.currency, language, false, numberFormat)}</span>
+                  <span className="font-bold text-slate-900 dark:text-white">−{formatCurrency(insights.totalSpent, settings.currency, language, isPrivacyMode, numberFormat)}</span>
                 </div>
               </div>
             </div>
@@ -263,7 +264,7 @@ export const InsightsScreen: React.FC = () => {
                 {t.insights.totalSpent}
               </span>
               <div className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white mt-1 tracking-tight truncate">
-                {formatCurrency(insights.totalSpent, settings.currency, language, false, numberFormat)}
+                {formatCurrency(insights.totalSpent, settings.currency, language, isPrivacyMode, numberFormat)}
               </div>
               <span className="text-xs text-slate-500 dark:text-slate-400 mt-1 block">
                 {formatMonthLabel(selectedMonthPrefix, language)}
@@ -275,7 +276,7 @@ export const InsightsScreen: React.FC = () => {
                 {t.insights.dailyAverage}
               </span>
               <div className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white mt-1 tracking-tight truncate">
-                {formatCurrency(insights.dailyAverage, settings.currency, language, false, numberFormat)}
+                {formatCurrency(insights.dailyAverage, settings.currency, language, isPrivacyMode, numberFormat)}
               </div>
               <span className="text-xs text-slate-500 dark:text-slate-400 mt-1 block">
                 {insights.isCurrentMonth 
@@ -304,7 +305,7 @@ export const InsightsScreen: React.FC = () => {
                 <>
                   <div className="text-base sm:text-lg font-bold mt-1 tracking-tight flex items-center gap-1 text-slate-800 dark:text-slate-200">
                     {insights.monthComparison.difference >= 0 ? '+' : '−'}
-                    {formatCurrency(Math.abs(insights.monthComparison.difference), settings.currency, language, false, numberFormat)}
+                    {formatCurrency(Math.abs(insights.monthComparison.difference), settings.currency, language, isPrivacyMode, numberFormat)}
                   </div>
                   <span className="text-xs text-slate-500 dark:text-slate-400 mt-1 block truncate">
                     {insights.monthComparison.percentageChange !== null && insights.monthComparison.percentageChange >= 0 ? '+' : ''}
@@ -342,7 +343,7 @@ export const InsightsScreen: React.FC = () => {
                     <span className="font-bold text-blue-600 dark:text-blue-400">
                       {formatNum(insights.topCategory.percentage)}٪
                     </span>
-                    {' '}من إنفاق شهر {formatMonthLabel(selectedMonthPrefix, 'ar')} ({formatCurrency(insights.topCategory.total, settings.currency, 'ar', false, 'arabic')} عبر {formatNum(insights.topCategory.count)} {insights.topCategory.count === 1 ? 'معاملة' : 'معاملات'}).
+                    {' '}من إنفاق شهر {formatMonthLabel(selectedMonthPrefix, 'ar')} ({formatCurrency(insights.topCategory.total, settings.currency, 'ar', isPrivacyMode, 'arabic')} عبر {formatNum(insights.topCategory.count)} {insights.topCategory.count === 1 ? 'معاملة' : 'معاملات'}).
                   </>
                 ) : (
                   <>
@@ -353,7 +354,7 @@ export const InsightsScreen: React.FC = () => {
                     <span className="font-bold text-blue-600 dark:text-blue-400">
                       {formatNum(insights.topCategory.percentage)}%
                     </span>
-                    {' '}of {formatMonthLabel(selectedMonthPrefix, 'en')} spending ({formatCurrency(insights.topCategory.total, settings.currency, 'en', false, 'western')} across {formatNum(insights.topCategory.count)} {insights.topCategory.count === 1 ? 'transaction' : 'transactions'}).
+                    {' '}of {formatMonthLabel(selectedMonthPrefix, 'en')} spending ({formatCurrency(insights.topCategory.total, settings.currency, 'en', isPrivacyMode, 'western')} across {formatNum(insights.topCategory.count)} {insights.topCategory.count === 1 ? 'transaction' : 'transactions'}).
                   </>
                 )}
               </div>
@@ -376,7 +377,7 @@ export const InsightsScreen: React.FC = () => {
                       {formatNum(item.percentage)}{language === 'ar' ? '٪' : '%'}
                     </span>
                     <span className="text-xs text-slate-500 dark:text-slate-400 block mt-0.5 truncate">
-                      {formatCurrency(item.total, settings.currency, language, false, numberFormat)}
+                      {formatCurrency(item.total, settings.currency, language, isPrivacyMode, numberFormat)}
                     </span>
                   </div>
                 ))}
@@ -413,14 +414,14 @@ export const InsightsScreen: React.FC = () => {
                             {getCategoryDisplayName(item.category.name, language)}
                           </span>
                           <span className="text-xs text-slate-500 dark:text-slate-400 block mt-0.5">
-                            {formatNum(item.count)} {t.insights.txns} · {formatCurrency(avgTxn, settings.currency, language, false, numberFormat)} {t.insights.avg}
+                            {formatNum(item.count)} {t.insights.txns} · {formatCurrency(avgTxn, settings.currency, language, isPrivacyMode, numberFormat)} {t.insights.avg}
                           </span>
                         </div>
                       </div>
 
                       <div className="text-end shrink-0">
                         <span className="font-bold text-sm text-slate-900 dark:text-white block">
-                          {formatCurrency(item.total, settings.currency, language, false, numberFormat)}
+                          {formatCurrency(item.total, settings.currency, language, isPrivacyMode, numberFormat)}
                         </span>
                         <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 block">
                           {formatNum(item.percentage)}{language === 'ar' ? '٪' : '%'}
@@ -451,7 +452,7 @@ export const InsightsScreen: React.FC = () => {
                 {t.insights.largestTransaction}
               </span>
               <div className="text-base sm:text-lg font-bold text-slate-900 dark:text-white mt-1 truncate">
-                {insights.largestExpense ? formatCurrency(insights.largestExpense.amount, settings.currency) : '—'}
+                {insights.largestExpense ? formatCurrency(insights.largestExpense.amount, settings.currency, language, isPrivacyMode, numberFormat) : '—'}
               </div>
               <span className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 block truncate">
                 {insights.largestExpense?.note || insights.largestExpense?.merchant || t.insights.singleLargest}
@@ -463,7 +464,7 @@ export const InsightsScreen: React.FC = () => {
                 {t.insights.highestDay}
               </span>
               <div className="text-base sm:text-lg font-bold text-slate-900 dark:text-white mt-1 truncate">
-                {insights.highestSpendingDay ? formatCurrency(insights.highestSpendingDay.amount, settings.currency, language, false, numberFormat) : '—'}
+                {insights.highestSpendingDay ? formatCurrency(insights.highestSpendingDay.amount, settings.currency, language, isPrivacyMode, numberFormat) : '—'}
               </div>
               <span className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 block truncate">
                 {insights.highestSpendingDay ? `${t.insights.dayOf.replace('{day}', formatNum(insights.highestSpendingDay.day)).replace('{total}', formatNum(insights.daysInMonth))} (${formatNum(insights.highestSpendingDay.count)} ${t.insights.txns})` : '—'}
@@ -475,7 +476,7 @@ export const InsightsScreen: React.FC = () => {
                 {t.insights.averageTransaction}
               </span>
               <div className="text-base sm:text-lg font-bold text-slate-900 dark:text-white mt-1 truncate">
-                {insights.averageTransaction > 0 ? formatCurrency(insights.averageTransaction, settings.currency, language, false, numberFormat) : '—'}
+                {insights.averageTransaction > 0 ? formatCurrency(insights.averageTransaction, settings.currency, language, isPrivacyMode, numberFormat) : '—'}
               </div>
               <span className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 block truncate">
                 {t.insights.perTransaction}

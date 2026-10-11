@@ -84,6 +84,7 @@ export const SettingsScreen: React.FC = () => {
     theme,
     setTheme,
     setActiveTab,
+    isPrivacyMode,
     t
   } = useApp();
 
@@ -601,7 +602,7 @@ export const SettingsScreen: React.FC = () => {
             className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 hover:bg-slate-100/80 dark:bg-slate-800 dark:hover:bg-slate-750 text-slate-900 dark:text-white font-bold text-xs sm:text-sm transition-all cursor-pointer shadow-2xs hover:border-blue-400 focus:ring-2 focus:ring-blue-500/20 shrink-0"
             title={language === 'ar' ? 'انقر لتعديل الميزانية' : 'Click to edit budget'}
           >
-            {budget.amount > 0 ? formatCurrency(budget.amount, settings.currency, language, false, numberFormat) : (language === 'ar' ? 'حدد الميزانية' : 'Set budget')}
+            {budget.amount > 0 ? formatCurrency(budget.amount, settings.currency, language, isPrivacyMode, numberFormat) : (language === 'ar' ? 'حدد الميزانية' : 'Set budget')}
           </button>
         )}
       </div>
@@ -788,7 +789,7 @@ export const SettingsScreen: React.FC = () => {
                         </span>
                       </div>
                       <span className="text-[11px] text-slate-400 block truncate leading-normal">
-                        {getAccountTypeDisplayName(acc.type, language)} · <strong className={s.currentBalance < 0 ? 'text-rose-600 font-semibold' : 'text-slate-700 dark:text-slate-300 font-semibold'}>{formatCurrency(s.currentBalance, settings.currency, language, false, numberFormat)}</strong>
+                        {getAccountTypeDisplayName(acc.type, language)} · <strong className={s.currentBalance < 0 ? 'text-rose-600 font-semibold' : 'text-slate-700 dark:text-slate-300 font-semibold'}>{formatCurrency(s.currentBalance, settings.currency, language, isPrivacyMode, numberFormat)}</strong>
                       </span>
                     </div>
                   </div>
@@ -1115,11 +1116,17 @@ export const SettingsScreen: React.FC = () => {
             </div>
 
             {/* Auto Privacy on Launch Toggle */}
-            <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-              <div>
-                <span className="font-bold text-slate-800 dark:text-slate-200 block">
-                  {language === 'ar' ? 'بدء التطبيق دائماً بوضع الخصوصية' : 'Mask Amounts on App Launch'}
-                </span>
+            <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <EyeOff size={16} className="text-slate-500 shrink-0" />
+                <div>
+                  <span className="font-bold text-slate-800 dark:text-slate-200 block">
+                    {language === 'ar' ? 'بدء التطبيق دائماً بوضع الخصوصية' : 'Mask Amounts on App Launch'}
+                  </span>
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400 block mt-0.5">
+                    {language === 'ar' ? 'إخفاء الأرقام المالية تلقائياً (••••) فور فتح أو استئناف التطبيق' : 'Automatically mask figures with (••••) whenever the app is opened or resumed'}
+                  </span>
+                </div>
               </div>
               <button
                 type="button"
@@ -1128,9 +1135,11 @@ export const SettingsScreen: React.FC = () => {
                 onClick={() => {
                   const next = !settings.autoPrivacyModeOnLaunch;
                   updateSettings({ autoPrivacyModeOnLaunch: next });
-                  try {
-                    localStorage.setItem('masrofy_auto_privacy_launch', String(next));
-                  } catch {}
+                  showToast(
+                    next 
+                      ? (language === 'ar' ? 'تم تفعيل وضع الخصوصية عند بدء التطبيق' : 'Auto privacy on launch enabled')
+                      : (language === 'ar' ? 'تم تعطيل وضع الخصوصية عند بدء التطبيق' : 'Auto privacy on launch disabled')
+                  );
                 }}
                 className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden ${settings.autoPrivacyModeOnLaunch ? 'bg-blue-600' : 'bg-slate-300 dark:bg-slate-700'}`}
               >

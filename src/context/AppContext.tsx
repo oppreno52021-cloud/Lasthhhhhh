@@ -133,6 +133,7 @@ interface AppContextType {
   fontSize: FontSizeOption;
   setFontSize: (size: FontSizeOption) => Promise<void>;
   isPrivacyMode: boolean;
+  setPrivacyMode: (enabled: boolean) => void;
   togglePrivacyMode: () => void;
   duplicateExpense: (expense: Expense) => Promise<void>;
   t: Translations;
@@ -234,11 +235,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Privacy Mode (Hide financial figures)
   const [isPrivacyMode, setIsPrivacyMode] = useState<boolean>(() => {
     try {
+      // If Auto Privacy on Launch is enabled, always start in privacy mode
+      const autoOnLaunch = localStorage.getItem('masrofy_auto_privacy_launch') === 'true';
+      if (autoOnLaunch) {
+        return true;
+      }
       return localStorage.getItem('masrofy_privacy') === 'true';
     } catch {
       return false;
     }
   });
+
+  const setPrivacyMode = useCallback((enabled: boolean) => {
+    setIsPrivacyMode(enabled);
+    try {
+      localStorage.setItem('masrofy_privacy', String(enabled));
+    } catch {}
+  }, []);
 
   const togglePrivacyMode = useCallback(() => {
     setIsPrivacyMode(prev => {
@@ -314,9 +327,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setAccounts(sanitizedAccounts);
       setRecurring(recList);
       if (setObj) {
-        let finalSettings = setObj;
+        let finalSettings = { ...DEFAULT_SETTINGS, ...setObj };
         if (!setObj.currency || setObj.currency === 'NONE') {
-          finalSettings = { ...setObj, currency: 'EGP', currencySymbol: 'ج.م' };
+          finalSettings = { ...finalSettings, currency: 'EGP', currencySymbol: 'ج.م' };
           localDB.saveSettings(finalSettings);
         }
         if (finalSettings.passcode) {
@@ -327,6 +340,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         }
         if (finalSettings.biometricLock !== undefined) {
           try { localStorage.setItem('masrofy_biometric_lock', String(Boolean(finalSettings.biometricLock))); } catch {}
+        }
+        const isAutoPrivacy = Boolean(finalSettings.autoPrivacyModeOnLaunch);
+        try { localStorage.setItem('masrofy_auto_privacy_launch', String(isAutoPrivacy)); } catch {}
+        if (isAutoPrivacy) {
+          setIsPrivacyMode(true);
+          try { localStorage.setItem('masrofy_privacy', 'true'); } catch {}
         }
         if (finalSettings.hasCompletedOnboarding) {
           try { localStorage.setItem('masrofy_onboarding', 'true'); } catch {}
@@ -454,6 +473,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const updateSettings = useCallback(async (newSettings: Partial<Settings>) => {
     const updated = { ...settings, ...newSettings };
+    if ('autoPrivacyModeOnLaunch' in newSettings) {
+      const isAuto = Boolean(newSettings.autoPrivacyModeOnLaunch);
+      try {
+        localStorage.setItem('masrofy_auto_privacy_launch', String(isAuto));
+      } catch {}
+      if (isAuto) {
+        setIsPrivacyMode(true);
+        try {
+          localStorage.setItem('masrofy_privacy', 'true');
+        } catch {}
+      }
+    }
     if ('biometricLock' in newSettings) {
       try {
         localStorage.setItem('masrofy_biometric_lock', String(Boolean(newSettings.biometricLock)));
@@ -1098,6 +1129,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         fontSize: settings.fontSize || 'normal',
         setFontSize,
         isPrivacyMode,
+        setPrivacyMode,
         togglePrivacyMode,
         duplicateExpense,
         t,

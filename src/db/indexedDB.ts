@@ -536,7 +536,7 @@ class LocalDatabase {
 
   async getSettings(): Promise<Settings> {
     const settings = await this.get<Settings>('settings', 'current');
-    return settings || DEFAULT_SETTINGS;
+    return settings ? { ...DEFAULT_SETTINGS, ...settings } : DEFAULT_SETTINGS;
   }
 
   async saveSettings(settings: Settings): Promise<void> {

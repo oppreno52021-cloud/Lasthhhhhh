@@ -753,4 +753,28 @@ describe('Audited Masrofy Test Suite', () => {
     expect(afterExpenses.length).toBe(1);
     expect(afterExpenses[0].note).toBe('معاملة أصلية آمنة');
   });
+
+  it('17. should preserve autoPrivacyModeOnLaunch and merge with DEFAULT_SETTINGS', async () => {
+    // 1. Initial getSettings should include autoPrivacyModeOnLaunch defaulted to false
+    const initialSettings = await localDB.getSettings();
+    expect(initialSettings.autoPrivacyModeOnLaunch).toBe(false);
+
+    // 2. Enable autoPrivacyModeOnLaunch and save
+    await localDB.saveSettings({ ...initialSettings, autoPrivacyModeOnLaunch: true });
+    const updated = await localDB.getSettings();
+    expect(updated.autoPrivacyModeOnLaunch).toBe(true);
+
+    // 3. Format currency with isMasked true returns masked string
+    const { formatCurrency } = await import('../src/utils/calculations');
+    const masked = formatCurrency(1250, 'EGP', 'ar', true);
+    expect(masked).toContain('••••');
+    expect(masked).not.toContain('1250');
+    expect(masked).not.toContain('١٢٥٠');
+
+    // 4. Format currency with isMasked false returns clear number
+    const unmasked = formatCurrency(1250, 'EGP', 'ar', false);
+    expect(unmasked).not.toContain('••••');
+    expect(unmasked).toContain('١,٢٥٠');
+  });
 });
+

@@ -29,6 +29,7 @@ export const MobileShell: React.FC = () => {
     setViewingExpense,
     settings,
     updateSettings,
+    setPrivacyMode,
     isLoading,
     language,
     showToast,
@@ -61,10 +62,14 @@ export const MobileShell: React.FC = () => {
     }
   }, [isLoading, settings.hasCompletedOnboarding]);
 
+  const settingsRef = useRef(settings);
+  useEffect(() => {
+    settingsRef.current = settings;
+  }, [settings]);
+
   useEffect(() => {
     if (!isLockEnabled) {
       setIsLocked(false);
-      return;
     }
 
     const handleVisibilityChange = () => {
@@ -73,29 +78,53 @@ export const MobileShell: React.FC = () => {
         return;
       }
       if (document.hidden) {
-        if (settings.privacyBlurEnabled ?? true) {
+        if (settingsRef.current.privacyBlurEnabled ?? true) {
           setIsAppBlurred(true);
         }
-        // Immediate lock on exit/minimize
-        setIsLocked(true);
+        if (isLockEnabled) {
+          setIsLocked(true);
+        }
+        if (settingsRef.current.autoPrivacyModeOnLaunch) {
+          setPrivacyMode(true);
+        }
       } else {
-        if (settings.privacyBlurEnabled ?? true) {
+        if (settingsRef.current.privacyBlurEnabled ?? true) {
           setIsAppBlurred(false);
+        }
+        if (settingsRef.current.autoPrivacyModeOnLaunch) {
+          setPrivacyMode(true);
         }
       }
     };
 
     const handlePageHide = () => {
       if ((window as any).__isBiometricPromptActive || (window as any).__isSystemPickerActive) return;
-      setIsLocked(true);
+      if (isLockEnabled) {
+        setIsLocked(true);
+      }
+      if (settingsRef.current.autoPrivacyModeOnLaunch) {
+        setPrivacyMode(true);
+      }
+    };
+
+    const handlePageShow = () => {
+      if (settingsRef.current.autoPrivacyModeOnLaunch) {
+        setPrivacyMode(true);
+      }
     };
 
     const handleLockNow = () => {
-      setIsLocked(true);
+      if (isLockEnabled) {
+        setIsLocked(true);
+      }
+      if (settingsRef.current.autoPrivacyModeOnLaunch) {
+        setPrivacyMode(true);
+      }
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('pagehide', handlePageHide);
+    window.addEventListener('pageshow', handlePageShow);
     window.addEventListener('masrofy_lock_now', handleLockNow);
 
     // Native Android App Lifecycle listener via Capacitor
@@ -105,7 +134,17 @@ export const MobileShell: React.FC = () => {
         CapacitorApp.addListener('appStateChange', ({ isActive }) => {
           if ((window as any).__isBiometricPromptActive || (window as any).__isSystemPickerActive) return;
           if (!isActive) {
-            setIsLocked(true);
+            if (isLockEnabled) {
+              setIsLocked(true);
+            }
+            if (settingsRef.current.autoPrivacyModeOnLaunch) {
+              setPrivacyMode(true);
+            }
+          } else {
+            // App resumed / brought to foreground on Android
+            if (settingsRef.current.autoPrivacyModeOnLaunch) {
+              setPrivacyMode(true);
+            }
           }
         }).then(listener => {
           capacitorListener = listener;
@@ -116,12 +155,13 @@ export const MobileShell: React.FC = () => {
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('pagehide', handlePageHide);
+      window.removeEventListener('pageshow', handlePageShow);
       window.removeEventListener('masrofy_lock_now', handleLockNow);
       if (capacitorListener?.remove) {
         capacitorListener.remove();
       }
     };
-  }, [isLockEnabled, settings.privacyBlurEnabled]);
+  }, [isLockEnabled, setPrivacyMode]);
 
   // Onboarding back handler
   useBackHandler(showOnboarding, () => setShowOnboarding(false), 'onboarding');
@@ -213,7 +253,12 @@ export const MobileShell: React.FC = () => {
       {/* Biometric & Passcode Lock Screen */}
       {isLockEnabled && isLocked && (
         <LockScreen
-          onUnlock={() => setIsLocked(false)}
+          onUnlock={() => {
+            setIsLocked(false);
+            if (settingsRef.current.autoPrivacyModeOnLaunch) {
+              setPrivacyMode(true);
+            }
+          }}
           savedPasscode={settings.passcode || '123456'}
           biometricEnabled={Boolean(settings.biometricLock)}
           pinEnabled={Boolean(settings.pinLockEnabled)}

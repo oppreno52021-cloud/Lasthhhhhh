@@ -27,7 +27,7 @@ export const CategoryDetailModal: React.FC<CategoryDetailModalProps> = ({
   onClose,
   onSelectTransaction,
 }) => {
-  const { language, t } = useApp();
+  const { language, isPrivacyMode, t } = useApp();
 
   useBodyScrollLock(Boolean(category));
   useBackHandler(Boolean(category), onClose, 'category-detail');
@@ -94,7 +94,7 @@ export const CategoryDetailModal: React.FC<CategoryDetailModalProps> = ({
           <div className="p-2 bg-white dark:bg-slate-900 rounded-xl border border-slate-200/60 dark:border-slate-800 shadow-2xs">
             <span className="text-[10px] text-slate-400 uppercase font-semibold block">{t.insights.catModalTotal}</span>
             <span className="font-bold text-slate-900 dark:text-white text-xs mt-0.5 block truncate">
-              {formatCurrency(total, currency, language)}
+              {formatCurrency(total, currency, language, isPrivacyMode)}
             </span>
           </div>
 
@@ -108,14 +108,14 @@ export const CategoryDetailModal: React.FC<CategoryDetailModalProps> = ({
           <div className="p-2 bg-white dark:bg-slate-900 rounded-xl border border-slate-200/60 dark:border-slate-800 shadow-2xs">
             <span className="text-[10px] text-slate-400 uppercase font-semibold block">{t.insights.catModalAverage}</span>
             <span className="font-bold text-slate-900 dark:text-white text-xs mt-0.5 block truncate">
-              {formatCurrency(average, currency, language)}
+              {formatCurrency(average, currency, language, isPrivacyMode)}
             </span>
           </div>
 
           <div className="p-2 bg-white dark:bg-slate-900 rounded-xl border border-slate-200/60 dark:border-slate-800 shadow-2xs">
             <span className="text-[10px] text-slate-400 uppercase font-semibold block">{t.insights.catModalLargest}</span>
             <span className="font-bold text-slate-900 dark:text-white text-xs mt-0.5 block truncate">
-              {largestTransaction ? formatCurrency(largestTransaction.amount, currency, language) : '—'}
+              {largestTransaction ? formatCurrency(largestTransaction.amount, currency, language, isPrivacyMode) : '—'}
             </span>
           </div>
         </div>
@@ -152,7 +152,7 @@ export const CategoryDetailModal: React.FC<CategoryDetailModalProps> = ({
                   </div>
 
                   <span className="font-bold text-slate-900 dark:text-white shrink-0">
-                    − {formatCurrency(exp.amount, currency, language)}
+                    − {formatCurrency(exp.amount, currency, language, isPrivacyMode)}
                   </span>
                 </div>
               ))}
